@@ -31,7 +31,7 @@ class Ticket(models.Model):
     )
     purchase_date = models.DateTimeField(_("date d'achat"), auto_now_add=True)
     status = models.CharField(
-        _("statut"),
+        _("status"),
         max_length=10,
         choices=StatusChoices.choices,
         default=StatusChoices.PENDING,

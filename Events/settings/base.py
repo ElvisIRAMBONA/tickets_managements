@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_elasticsearch_dsl",
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     "apps.halls",
     "apps.tickets",
     "apps.users",
+    "silk",
 ]
 
 MIDDLEWARE = [
@@ -54,7 +56,38 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "silk.middleware.SilkyMiddleware",
+
 ]
+
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://67c99a4c972fbe1080cad8775c7b0b87@o4508676193452032.ingest.us.sentry.io/4508676201054208",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
+    traces_sample_rate=1.0,
+    _experiments={
+        # Set continuous_profiling_auto_start to True
+        # to automatically start the profiler on when
+        # possible.
+        "continuous_profiling_auto_start": True,
+    },
+)
+# settings.py
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'http://localhost:9200'  # URL où ElasticSearch est accessible
+    }
+}
+
+
+
+
+SILKY_PYTHON_PROFILER = True
+SILKY_PROFILE_API = True
+
+
 
 AUTH_USER_MODEL = "users.CustomUser"
 ROOT_URLCONF = "Events.urls"
@@ -87,6 +120,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.home.context_pro.infos_generales",
             ],
         },
     },
@@ -104,7 +138,16 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
+SIMPLE_JWT = {
+    'ACCES_TOKEN_LIFETIME': timedelta(
+        days=3
+    ),
+    'REFRESH_TOKEN_LIFETIME': timedelta(
+        days=2
+    ),
+    'ROTATE_REFRESH_TOKEN':True,
+    'BLACKLIST_AFTER_ROTATION':True,
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

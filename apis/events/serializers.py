@@ -5,6 +5,17 @@ from rest_framework import serializers
 from apps.events.models import Event, StatusChoices
 from apps.halls.models import Halls
 from apps.users.models import CustomUser
+from apps.halls.models import Ticket
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    """Serializer pour les tickets."""
+
+    class Meta:
+        model = Ticket
+        fields = ['id', 'user', 'price', 'purchased_at']
+
+
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -13,7 +24,9 @@ class EventSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         queryset=CustomUser.objects.filter(is_organizer=True)
     )
+
     hall = serializers.PrimaryKeyRelatedField(queryset=Halls.objects.all())
+    tickets = TicketSerializer(many=True, read_only=True)
     price = serializers.DecimalField(max_digits=8, decimal_places=2)
     seats_available = serializers.IntegerField(read_only=True)
     total_revenue = serializers.SerializerMethodField(read_only=True)
@@ -36,8 +49,10 @@ class EventSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "total_revenue",
+            "tickets",
         ]
         read_only_fields = ("seats_available", "total_revenue")
+
 
     def get_total_revenue(self, obj):
         """Calculate the total revenue for the event."""
@@ -96,3 +111,13 @@ class EventSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    def _is_finished(self):
+        #verifiy if event is finished
+        return self.end_date < timezone.now()
+    def is_available(self):
+        """Verify if the event is available."""
+        return (
+            self.status == StatusChoices.PUBLISHED
+            and self.seats_available > 0
+            and not self.is_finished
+        )

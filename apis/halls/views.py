@@ -1,12 +1,12 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from apis.events.views import BaseApi
 from apis.halls.serializers import HallSerializer
 from apps.halls.models import Halls
 
 
-class HallListView(APIView):
+class HallListView(BaseApi):
     """display list of halls"""
 
     def get(self, request):
@@ -15,7 +15,7 @@ class HallListView(APIView):
         return Response(serializer.data)
 
 
-class HallCreateView(APIView):
+class HallCreateView(BaseApi):
     "create hall"
 
     def post(self, request):

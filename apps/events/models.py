@@ -51,6 +51,7 @@ class Event(models.Model):
         blank=True,
         default="event_images/default.jpg",
     )
+
     status = models.CharField(
         _("status"),
         max_length=10,
@@ -121,12 +122,16 @@ class Event(models.Model):
             total=models.Sum("total_price")
         )["total"] or Decimal("0.00")
 
+    def is_finished(self):
+        #verify if the event has not already finished
+        self.end_date < timezone.now()
+
     def is_available(self):
         """Verify if the event is available."""
         return (
             self.status == StatusChoices.PUBLISHED
             and self.seats_available > 0
-            and self.date > timezone.now()
+            and not self.is_finished
         )
 
     def __str__(self):
