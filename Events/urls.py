@@ -28,6 +28,6 @@ urlpatterns = [
     path("tickets/", include("apis.tickets.urls")),
     path("users/", include("apis.users.urls")),
     path('', include('apps.home.urls')),
-
+    path('search/', include('apps.search.urls')),
 ]
 urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]

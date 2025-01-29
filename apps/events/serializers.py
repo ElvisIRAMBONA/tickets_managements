@@ -45,24 +45,30 @@ class EventSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Validate data before creating or updating an event."""
-        if data["date"] >= data["end_date"]:
+
+        # Vérifier si les clés "date" et "end_date" existent
+        date = data.get("date")
+        end_date = data.get("end_date")
+
+        if date is None or end_date is None:
             raise serializers.ValidationError(
-                {"end_date": _("end_date must be superior to start_date")}
+                {"date": _( "Both 'date' and 'end_date' fields are required.")}
+            )
+
+        if date >= end_date:
+            raise serializers.ValidationError(
+                {"end_date": _( "end_date must be superior to start_date")}
             )
 
         hall = data.get("hall")
         if hall and data.get("capacity", 0) > hall.capacity:
             raise serializers.ValidationError(
-                {
-                    "capacity": _(
-                        "available seats can't be more than the hall's capacity"
-                    )
-                }
+                {"capacity": _( "available seats can't be more than the hall's capacity")}
             )
 
-        if data["date"] < timezone.now():
+        if date < timezone.now():
             raise serializers.ValidationError(
-                {"date": _("event date can't be in the past")}
+                {"date": _( "event date can't be in the past")}
             )
 
         return data

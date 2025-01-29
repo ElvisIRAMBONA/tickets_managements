@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_elasticsearch_dsl",
+    "django_elasticsearch_dsl_drf",
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     "apps.tickets",
     "apps.users",
     "silk",
+    "apps.search",
 ]
 
 MIDDLEWARE = [
@@ -74,15 +76,22 @@ sentry_sdk.init(
         "continuous_profiling_auto_start": True,
     },
 )
+#settings for Redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1", # Local Link provided by the redis-server command
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 # settings.py
 ELASTICSEARCH_DSL = {
     'default': {
-        'hosts': 'http://localhost:9200'  # URL où ElasticSearch est accessible
+        'hosts': 'http://localhost:9200'
     }
 }
-
-
-
 
 SILKY_PYTHON_PROFILER = True
 SILKY_PROFILE_API = True

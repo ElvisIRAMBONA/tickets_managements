@@ -28,7 +28,7 @@ class UserCreateView(APIView):
 class LoginView(APIView):
     """View to manage user connection"""
 
-    def post(self, request):
+    def get(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
 
