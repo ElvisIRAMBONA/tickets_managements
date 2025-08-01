@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-n9o388u9!ror5355(et^kiz*tp(9-d%6(w)pi2fs+7)-p*dpd4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "apps.events",
     "apps.halls",
+    "drf_yasg",
     "apps.tickets",
     "apps.users",
     "silk",
@@ -134,6 +135,23 @@ TEMPLATES = [
         },
     },
 ]
+
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'logs/django.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+    },
+}
 
 WSGI_APPLICATION = "Events.wsgi.application"
 

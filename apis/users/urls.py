@@ -1,4 +1,4 @@
-# apps/users/urls.py
+# apis/users/urls.py
 from django.urls import path
 
 from .views import UserCreateView, UserListView,LoginView
