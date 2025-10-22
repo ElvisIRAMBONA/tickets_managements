@@ -12,10 +12,10 @@ class BaseApi(APIView):
      permission_classes = [IsAuthenticated]
 
 
-class TicketCreateView(APIView):
+class TicketCreateView(BaseApi):
     "to create a ticket"
     def post(self, request):
-        serializer = TicketSerializer(data=request.data)
+        serializer = TicketSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -95,4 +95,18 @@ class TicketManagementView(BaseApi):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, pk, *args, **kwargs):
+        """Handle ticket deletion."""
+        try:
+            ticket = Ticket.objects.get(pk=pk, user=request.user)
+        except Ticket.DoesNotExist:
+            return Response(
+                {"error": "Ticket not found or unauthorized access"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
+        ticket.delete()
+        return Response(
+            {"message": "Ticket deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT,
+        )

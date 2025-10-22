@@ -47,15 +47,32 @@ class TicketSerializer(serializers.ModelSerializer):
                 _("Vous ne pouvez pas acheter un ticket pour un autre utilisateur.")
             )
 
+        # Get the event from data or instance
+        event = data.get("event") or self.instance.event
+
+        # Check for duplicate ticket
+        if self.instance is None:  # Only for creation
+            existing_ticket = Ticket.objects.filter(event=event, user=user).exists()
+            if existing_ticket:
+                raise serializers.ValidationError(
+                    _("You already have a ticket for this event.")
+                )
+
         # Verify if the event is available for booking
         if data["status"] == Ticket.StatusChoices.CONFIRMED:
-            event = data["event"]
             if not event.is_available():
                 raise serializers.ValidationError(
                     _("The event is no longer available ")
                 )
 
             # Verify if the event has available seats
+            if event.seats_available <= 0:
+                raise serializers.ValidationError(
+                    _("No available seat for this event")
+                )
+
+        # For PENDING status, also check seats if trying to create
+        if self.instance is None and data["status"] == Ticket.StatusChoices.PENDING:
             if event.seats_available <= 0:
                 raise serializers.ValidationError(
                     _("No available seat for this event")
@@ -72,10 +89,11 @@ class TicketSerializer(serializers.ModelSerializer):
         validated_data["user"] = user
 
         # Generate a ticket number
-        validated_data["ticket_number"] = Ticket.objects.create().generate_ticket_number()
+        ticket = Ticket(**validated_data)
+        ticket.ticket_number = ticket.generate_ticket_number()
 
         # Create the ticket
-        ticket = Ticket.objects.create(**validated_data)
+        ticket.save()
         return ticket
 
     def update(self, instance, validated_data):
@@ -86,7 +104,7 @@ class TicketSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
 
         # If the status is confirmed, update total price and reduce available seats
-        if instance.status == Ticket.StatusChoices.CONFIRMED:
+        if validated_data.get("status") == Ticket.StatusChoices.CONFIRMED and instance.status != Ticket.StatusChoices.CONFIRMED:
             instance.total_price = instance.event.price
             instance.event.seats_available -= 1
             instance.event.save()

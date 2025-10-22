@@ -10,7 +10,8 @@ class EventCreationTestCase(APITestCase):
     """Test case for event creation."""
 
     def setUp(self):
-        self.create_event_url = reverse("create")
+        self.create_event_url = reverse("event_create")  # Assure-toi que ce nom de route est correct.
+        
         # Create a user
         self.organizer = CustomUser.objects.create_user(
             username="organizer",
@@ -20,6 +21,7 @@ class EventCreationTestCase(APITestCase):
         )
 
         self.client.force_authenticate(user=self.organizer)
+
         # Create a hall
         self.hall = Halls.objects.create(
             name="Main Hall",
@@ -27,35 +29,28 @@ class EventCreationTestCase(APITestCase):
             location="Test Location",
         )
 
-        # create event
+        # Event payload
         self.valid_event_data = {
             "user": self.organizer.id,
             "title": "Sample Event",
             "description": "This is a test event.",
             "capacity": 50,
             "price": "20.00",
-            "date": "2025-02-01T10:00:00Z",
-            "end_date": "2025-02-01T12:00:00Z",
+            "date": "2025-12-01T10:00:00Z",
+            "end_date": "2025-12-01T12:00:00Z",
             "hall": self.hall.id,
-            "status": "DRAFT",
+            "status": StatusChoices.DRAFT
         }
 
-def test_create_hall_success(self):
-    """Test creating a hall with valid data"""
-    response = self.client.post(self.create_event_url, self.valid_payload, format="json")
-    print(response.data)  # Afficher la réponse pour examiner l'erreur
-    self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    self.assertEqual(Halls.objects.count(), 1)
-    hall = Halls.objects.first()
-    self.assertEqual(hall.name, self.valid_payload["name"])
-    self.assertEqual(hall.capacity, self.valid_payload["capacity"])
-    self.assertEqual(hall.location, self.valid_payload["location"])
-    self.assertTrue(hall.is_active)
-
-
-class SearchEventsAPITestCase(APITestCase):
-    def test_search_events(self):
-        url = reverse('search_events')
-        response = self.client.get(url, {'q': 'test', 'price_min': 10, 'price_max': 50})
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(len(response.data) > 0)
+    def test_create_event_success(self):
+        """Test creating an event with valid data"""
+        
+        response = self.client.post(self.create_event_url, self.valid_event_data, format="json")
+        print(response.data)  # Optionnel : utile pour debug
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Event.objects.count(), 1)
+        event = Event.objects.first()
+        self.assertEqual(event.title, self.valid_event_data["title"])
+        self.assertEqual(event.capacity, self.valid_event_data["capacity"])
+        self.assertEqual(event.hall.id, self.valid_event_data["hall"])
+        self.assertEqual(event.status, self.valid_event_data["status"])

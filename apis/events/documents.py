@@ -1,7 +1,11 @@
-# apis/events/documents.py
-from elasticsearch_dsl import Document, Text, Date, Integer, Keyword
+# apis/events/documents
+from apps.events.models import Event
+from elasticsearch_dsl import Document, Text, Date, Keyword, Integer
 from elasticsearch_dsl.connections import connections
 from apps.events.models import Event
+
+
+
 
 # Connexion à Elasticsearch
 connections.create_connection(
@@ -17,7 +21,7 @@ class EventDocument(Document):
     date = Date(format='yyyy-MM-dd')
     end_date = Date()
     price = Integer()
-    status = Keyword()
+    status =Keyword()
 
     class Index:
         name = 'events'  # Name of index elasticsearch

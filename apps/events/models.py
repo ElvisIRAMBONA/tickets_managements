@@ -124,7 +124,7 @@ class Event(models.Model):
 
     def is_finished(self):
         #verify if the event has not already finished
-        self.end_date < timezone.now()
+        return self.end_date < timezone.now()
 
     def is_available(self):
         """Verify if the event is available."""

@@ -4,8 +4,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from apps.tickets.models import Ticket
 from apps.events.models import Event
 from apps.users.models import CustomUser
+from apps.halls.models import Halls
 from django.urls import reverse
 from decimal import Decimal
+import datetime
+from django.utils import timezone
 
 
 class TicketApiTests(APITestCase):
@@ -19,6 +22,13 @@ class TicketApiTests(APITestCase):
             username="testuser", email="test@example.com", password="password"
         )
 
+        # Creation of hall for test
+        cls.hall = Halls.objects.create(
+            name="Test Hall",
+            capacity=100,
+            location="Test Location",
+        )
+
         # Creation of event for test
         cls.event = Event.objects.create(
             title="Test Event",
@@ -26,16 +36,17 @@ class TicketApiTests(APITestCase):
             price=Decimal("100.00"),
             capacity=100,
             seats_available=10,
-            date="2025-02-01T10:00:00Z",
-            end_date="2025-02-01T12:00:00Z",
+            date=timezone.make_aware(datetime.datetime.fromisoformat("2025-02-01T10:00:00")),
+            end_date=timezone.make_aware(datetime.datetime.fromisoformat("2025-02-01T12:00:00")),
+            hall=cls.hall,
         )
 
         # Generation of JWT token for user
         cls.user_token = cls.get_jwt_token(cls.user)
 
         # defition of useful URLs for tests
-        cls.ticket_create_url = reverse("ticket-create")
-        cls.ticket_management_url = reverse("ticket-management")
+        cls.ticket_create_url = reverse("tickets:create")
+        cls.ticket_management_url = reverse("tickets:ticket-list-create")
 
     @staticmethod
     def get_jwt_token(user):
@@ -95,7 +106,7 @@ class TicketApiTests(APITestCase):
         }
         response = self.client.post(self.ticket_create_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, "Les places épuisées devraient être rejetées.")
-        self.assertIn("event", response.data, "Le champ 'event' devrait signaler une erreur.")
+        self.assertIn("non_field_errors", response.data, "Le champ 'non_field_errors' devrait signaler une erreur.")
 
     def test_create_duplicate_ticket(self):
         """Test pour empêcher la création de tickets en double."""
@@ -122,9 +133,9 @@ class TicketApiTests(APITestCase):
         """Test pour la mise à jour du statut d'un ticket."""
         self.authenticate_user()
         ticket = Ticket.objects.create(event=self.event, user=self.user, status="PENDING")
-        url = reverse("ticket-management", args=[ticket.id])
+        url = reverse("tickets:ticket-management", args=[ticket.id])
         data = {"status": "CONFIRMED"}
-        response = self.client.put(url, data)
+        response = self.client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK, "La mise à jour aurait dû réussir.")
         ticket.refresh_from_db()
         self.assertEqual(ticket.status, "CONFIRMED", "Le statut aurait dû être mis à jour.")
@@ -132,6 +143,6 @@ class TicketApiTests(APITestCase):
     def test_delete_ticket_not_found(self):
         """Test pour la suppression d'un ticket inexistant."""
         self.authenticate_user()
-        url = reverse("ticket-management", args=[999])
+        url = reverse("tickets:ticket-management", args=[999])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, "Le ticket inexistant aurait dû retourner 404.")

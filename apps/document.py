@@ -19,7 +19,7 @@ class EventDocument(Document):
         "name": fields.TextField(),
         "location": fields.TextField(),
     })
-    User=fields.ObjectField(properties={
+    user=fields.ObjectField(properties={
        "id": fields.IntegerField(),
        "username": fields.TextField(),
       "first_name": fields.TextField(),

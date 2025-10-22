@@ -5,7 +5,8 @@ from rest_framework import serializers
 from apps.events.models import Event, StatusChoices
 from apps.halls.models import Halls
 from apps.users.models import CustomUser
-from apps.halls.models import Ticket
+from apps.tickets.models import Ticket
+
 
 
 class TicketSerializer(serializers.ModelSerializer):
